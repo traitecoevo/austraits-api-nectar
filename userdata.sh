@@ -19,4 +19,5 @@ cd austraits-api
 sed -i 's/"traitecoevo\/austraits@api"/&, dependencies=FALSE, build_vignettes=FALSE/' API.build/API\ examples\ v1.R
 Rscript api_wrapper.R &
 
-$wc_notify --data-binary '{"status": "SUCCESS"}'
+sleep 60 && $wc_notify --data-binary '{"status": "SUCCESS"}'
+echo "build done"
