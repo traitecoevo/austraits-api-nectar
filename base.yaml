@@ -52,13 +52,7 @@ resources:
             router_id: { get_resource: router }
             network_id: { get_param: public_network }
 
-    router_interface:
-        type: OS::Neutron::RouterInterface
-        properties:
-            router: { get_resource: router }
-            subnet: { get_resource: subnet }
-
-    subnet:
+    public_subnet:
         type: OS::Neutron::Subnet
         properties:
             dns_nameservers:
@@ -68,7 +62,31 @@ resources:
             ip_version: 4
             cidr: 192.168.13.0/24
             allocation_pools:
-            - { start: 192.168.13.2, end: 192.168.13.126 }
+            - { start: 192.168.13.2, end: 192.168.13.254 }
+
+    private_subnet:
+        type: OS::Neutron::Subnet
+        properties:
+            dns_nameservers:
+            - 1.1.1.1
+            - 1.0.0.1
+            network: { get_resource: network }
+            ip_version: 4
+            cidr: 192.168.14.0/24
+            allocation_pools:
+            - { start: 192.168.14.2, end: 192.168.14.254 }
+
+    public_sub_router_interface:
+        type: OS::Neutron::RouterInterface
+        properties:
+            router: { get_resource: router }
+            subnet: { get_resource: public_subnet }
+
+    private_sub_router_interface:
+        type: OS::Neutron::RouterInterface
+        properties:
+            router: { get_resource: router }
+            subnet: { get_resource: private_subnet }
 
     secgroup:
         type: OS::Neutron::SecurityGroup
@@ -82,7 +100,7 @@ resources:
     lb:
         type: OS::Octavia::LoadBalancer
         properties:
-            vip_subnet: { get_resource: subnet }
+            vip_subnet: { get_resource: public_subnet }
 
     lb_listener:
         type: OS::Octavia::Listener
@@ -136,7 +154,7 @@ resources:
                     flavor: { get_param: flavor }
                     image: { get_param: image }
                     network: { get_resource: network }
-                    subnet: { get_resource: subnet }
+                    subnet: { get_resource: private_subnet }
                     secgroup: { get_resource: secgroup }
                     wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
                     pool: { get_resource: lb_pool }
