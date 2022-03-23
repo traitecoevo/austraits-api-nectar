@@ -19,15 +19,15 @@ parameters:
     lb_port:
         type: number
         default: 80
-        description: Public-facing port for load balancer
+        description: Outward-facing port for load balancer
 
     public_network:
         type: string
-        description: Public network for load balancer
+        description: Public network for external traffic
         constraints:
         - custom_constraint: neutron.network
 
-    count:
+    instance_count:
         type: number
         description: How many API instances to create
         default: 2
@@ -89,7 +89,7 @@ resources:
         properties:
             loadbalancer: { get_resource: lb }
             protocol: HTTP
-            protocol_port: { get_param: host_port }
+            protocol_port: { get_param: lb_port }
 
     lb_pool:
         type: OS::Octavia::Pool
@@ -121,15 +121,15 @@ resources:
         type: OS::Heat::WaitCondition
         properties:
             handle: { get_resource: wait_handle }
-            count: { get_param: count }  # wait for all instances to report success
+            count: { get_param: instance_count }  # wait for all instances to report success
             timeout: 600
 
     asg:
         type: OS::Heat::AutoScalingGroup
         properties:
-            min_size: { get_param: count }
-            max_size: { get_param: count }
-            desired_capacity: { get_param: count }
+            min_size: { get_param: instance_count }
+            max_size: { get_param: instance_count }
+            desired_capacity: { get_param: instance_count }
             resource:
                 type: server.yaml
                 properties:
@@ -145,6 +145,7 @@ resources:
 
 outputs:
     lb_url:
+        description: "Public-facing URL for load balancer"
         value:
             str_replace:
                 template: http://$ipaddress:$port
