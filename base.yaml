@@ -11,10 +11,6 @@ parameters:
         type: string
         default: "NeCTAR Ubuntu 20.04 LTS (Focal) amd64"
 
-    # availability_zone:
-    #     type: string
-    #     default: "intersect"
-
     host_port:
         type: number
         default: 80
@@ -72,7 +68,7 @@ resources:
             ip_version: 4
             cidr: 192.168.13.0/24
             allocation_pools:
-                - { start: 192.168.13.2, end: 192.168.13.126 }
+            - { start: 192.168.13.2, end: 192.168.13.126 }
 
     secgroup:
         type: OS::Neutron::SecurityGroup
@@ -88,27 +84,28 @@ resources:
         properties:
             vip_subnet: { get_resource: subnet }
 
-    listener:
+    lb_listener:
         type: OS::Octavia::Listener
         properties:
             loadbalancer: { get_resource: lb }
             protocol: HTTP
             protocol_port: { get_param: host_port }
 
-    pool:
+    lb_pool:
         type: OS::Octavia::Pool
         properties:
-            listener: { get_resource: listener }
+            listener: { get_resource: lb_listener }
             lb_algorithm: ROUND_ROBIN
             protocol: HTTP
 
     lb_monitor:
         type: OS::Octavia::HealthMonitor
+        depends_on: wait_condition
         properties:
-            pool: { get_resource: pool }
-            delay: 5
-            timeout: 15
-            max_retries: 3
+            pool: { get_resource: lb_pool }
+            delay: 20
+            timeout: 10
+            max_retries: 1
             type: TCP
 
     floating_ip:
@@ -142,7 +139,7 @@ resources:
                     subnet: { get_resource: subnet }
                     secgroup: { get_resource: secgroup }
                     wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
-                    pool: { get_resource: pool }
+                    pool: { get_resource: lb_pool }
                     host_port: { get_param: host_port }
                     api_branch: { get_param: api_branch }
 
