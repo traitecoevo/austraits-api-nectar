@@ -1,0 +1,76 @@
+heat_template_version: 2021-04-16
+
+parameters:
+    keypair:
+        type: string
+        description: Name of an existing keypair to enable SSH access to the instance
+        constraints:
+        - custom_constraint: nova.keypair
+
+    flavor:
+        type: string
+        default: "t3.xsmall"
+        constraints:
+        - custom_constraint: nova.flavor
+
+    image:
+        type: string
+        default: "NeCTAR Ubuntu 20.04 LTS (Focal) amd64"
+
+    host_port:
+        type: number
+        default: 80
+        description: Port used by hosts
+
+    api_branch:
+        type: string
+        description: Branch of traitecoevo/austraits_api to use for deployment
+        default: "master"
+
+resources:
+    secgroup:
+        type: OS::Neutron::SecurityGroup
+        properties:
+            rules:
+            - remote_ip_prefix: 0.0.0.0/0
+              port_range_min: { get_param: host_port }
+              port_range_max: { get_param: host_port }
+              protocol: tcp
+            - remote_ip_prefix: 0.0.0.0/0
+              protocol: tcp
+              port_range_min: 22
+              port_range_max: 22
+
+    wait_handle:
+        type: OS::Heat::WaitConditionHandle
+
+    wait_condition:
+        type: OS::Heat::WaitCondition
+        properties:
+            handle: { get_resource: wait_handle }
+            count: 1
+            timeout: 600
+
+    server:
+        type: OS::Nova::Server
+        properties:
+            key_name: { get_param: keypair }
+            flavor: { get_param: flavor }
+            image: { get_param: image }
+            networks:
+            - allocate_network: auto
+            security_groups:
+            - { get_resource: secgroup }
+
+            user_data_format: RAW
+            user_data:
+                str_replace:
+                    template: { get_file: userdata.sh }
+                    params:
+                        $branch: { get_param: api_branch }
+                        $wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
+
+outputs:
+    ip_address:
+        description: IP address of the deployed instance
+        value: { get_attr: [server, first_address] }
