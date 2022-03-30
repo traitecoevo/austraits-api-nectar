@@ -13,11 +13,16 @@ apt-get install -y r-cran-refmanager r-cran-dplyr r-cran-tidyr r-cran-rlang \
     r-cran-purrr r-cran-tidyselect r-cran-assertthat r-cran-stringr \
     r-cran-jsonlite r-cran-httr r-cran-magrittr r-cran-readr
 
-git clone https://github.com/traitecoevo/austraits-api -b $branch
+curl --silent -L https://github.com/traitecoevo/austraits-api/archive/$branch.tar.gz | tar zxf -
 
-cd austraits-api
-sed -i 's/"traitecoevo\/austraits@api"/&, dependencies=FALSE, build_vignettes=FALSE/' API.build/API\ examples\ v1.R
+cd austraits-api-$branch
+sed -i 's/"traitecoevo\/austraits@api"/&, dependencies=FALSE, build_vignettes=FALSE/' "API.build/API examples v1.R"
 Rscript api_wrapper.R &
 
-sleep 60 && $wc_notify --data-binary '{"status": "SUCCESS"}'
-echo "build done"
+while [ ! `curl --silent -I http://localhost:80/health-check | grep --count "200 OK"` -eq 1 ]; do
+    echo "*** waiting for API ..."
+    sleep 10
+done
+
+$wc_notify --data-binary '{"status": "SUCCESS"}'
+echo "*** build done"
