@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eux
 
 # This is to get a newer version (4.x) of r-base than in Ubuntu repos
 echo "deb https://cloud.r-project.org/bin/linux/ubuntu `lsb_release -cs`-cran40/" >> /etc/apt/sources.list
