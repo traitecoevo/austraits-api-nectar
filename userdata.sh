@@ -1,5 +1,9 @@
 #!/bin/bash -eu
 
+workdir=/opt
+
+cd $workdir
+
 curl --silent -L https://github.com/traitecoevo/austraits-api/archive/$branch.tar.gz | tar zxf -
 
 cd austraits-api-$branch
