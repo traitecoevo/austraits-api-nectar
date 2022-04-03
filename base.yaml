@@ -10,6 +10,10 @@ parameters:
     image:
         type: string
 
+    availability_zone:
+        type: string
+        default: "intersect"
+
     host_port:
         type: number
         default: 80
@@ -153,6 +157,7 @@ resources:
                 properties:
                     flavor: { get_param: flavor }
                     image: { get_param: image }
+                    availability_zone: { get_param: availability_zone }
                     network: { get_resource: network }
                     subnet: { get_resource: private_subnet }
                     secgroup: { get_resource: secgroup }

@@ -5,6 +5,8 @@ parameters:
         type: string
     image:
         type: string
+    availability_zone:
+        type: string
     network:
         type: string
     subnet:
@@ -26,6 +28,7 @@ resources:
         properties:
             flavor: { get_param: flavor }
             image: { get_param: image }
+            availability_zone: { get_param: availability_zone }
             networks:
             - { subnet: { get_param: subnet }}
             security_groups:
