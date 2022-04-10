@@ -166,6 +166,17 @@ resources:
                     host_port: { get_param: host_port }
                     api_branch: { get_param: api_branch }
 
+    lb_alarm:
+        type: OS::Aodh::LBMemberHealthAlarm
+        depends_on: lb_monitor
+        properties:
+            autoscaling_group_id: { get_resource: asg }
+            pool: { get_resource: lb_pool }
+            stack: { get_param: OS::stack_id }
+            alarm_actions:
+            - "trust+heat://"
+            repeat_actions: false
+
 outputs:
     lb_url:
         description: "Public-facing URL for load balancer"
