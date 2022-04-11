@@ -36,6 +36,11 @@ parameters:
         description: How many API instances to create
         default: 2
 
+    connection_limit:
+        type: number
+        description: Load balancer connection limit
+        default: 1500
+
     api_branch:
         type: string
         description: Branch of traitecoevo/austraits_api to use for deployment
@@ -112,6 +117,7 @@ resources:
             loadbalancer: { get_resource: lb }
             protocol: HTTP
             protocol_port: { get_param: lb_port }
+            connection_limit: { get_param: connection_limit }
 
     lb_pool:
         type: OS::Octavia::Pool
