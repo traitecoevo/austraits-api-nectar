@@ -3,7 +3,7 @@ heat_template_version: 2021-04-16
 parameters:
     flavor:
         type: string
-        default: "t3.xsmall"
+        default: "t3.small"
         constraints:
         - custom_constraint: nova.flavor
 
