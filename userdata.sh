@@ -4,7 +4,7 @@ workdir=/opt
 
 cd $workdir
 
-apt-get install -qq --no-install-recommends nginx
+apt-get update -qq && apt-get install -qq --no-install-recommends nginx
 cat <<EOF > /etc/nginx/nginx.conf
 user www-data;
 worker_processes auto;
@@ -14,12 +14,17 @@ events {
 }
 
 http {
+    limit_req_zone \$binary_remote_addr zone=limit:10m rate=10r/s;
+
     server {
         listen 80;
 
         location / {
             proxy_pass http://127.0.0.1:8000/;
             proxy_set_header X-Real-IP \$remote_addr;
+
+            limit_req zone=limit burst=20 nodelay;
+            limit_req_status 429;
         }
     }
 }
