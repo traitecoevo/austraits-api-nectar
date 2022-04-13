@@ -14,17 +14,33 @@ events {
 }
 
 http {
+    upstream austraits-api {
+        server localhost:8000;
+    }
+
     limit_req_zone \$binary_remote_addr zone=limit:10m rate=10r/s;
 
     server {
         listen 80;
 
         location / {
-            proxy_pass http://127.0.0.1:8000/;
+            proxy_pass http://austraits-api;
             proxy_set_header X-Real-IP \$remote_addr;
 
             limit_req zone=limit burst=20 nodelay;
             limit_req_status 429;
+        }
+
+        location /health-check {
+            proxy_pass http://austraits-api/health-check;
+            access_log off;
+        }
+
+        location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2)$ {
+            proxy_pass http://austraits-api;
+            access_log off;
+
+            add_header Cache-Control "max-age=1382400";
         }
     }
 }
