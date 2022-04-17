@@ -134,7 +134,9 @@ resources:
             delay: 20
             timeout: 10
             max_retries: 1
-            type: TCP
+            type: HTTP
+            url_path: "/health-check"
+            http_method: HEAD
 
     floating_ip:
         type: OS::Neutron::FloatingIP
