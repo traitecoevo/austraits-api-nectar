@@ -23,6 +23,29 @@ parameters:
         type: string
 
 resources:
+    cloud_config:
+        type: OS::Heat::CloudConfig
+        properties:
+            cloud_config:
+                package_update: true
+                packages:
+                - nginx
+
+                write_files:
+                - path: /tmp/nginx.conf
+                  content: { get_file: nginx.conf }
+                - path: /tmp/userdata.sh
+                  permissions: "0740"
+                  content:
+                      str_replace:
+                          template: { get_file: userdata.sh }
+                          params:
+                              $branch: { get_param: api_branch }
+                              $wc_notify: { get_param: wc_notify }
+
+                runcmd:
+                - /tmp/userdata.sh
+
     server:
         type: OS::Nova::Server
         properties:
@@ -34,13 +57,9 @@ resources:
             security_groups:
             - { get_param: secgroup }
 
-            user_data_format: RAW
+            user_data_format: SOFTWARE_CONFIG
             user_data:
-                str_replace:
-                    template: { get_file: userdata.sh }
-                    params:
-                        $branch: { get_param: api_branch }
-                        $wc_notify: { get_param: wc_notify }
+                get_resource: cloud_config
 
     pool_member:
         type: OS::Octavia::PoolMember
