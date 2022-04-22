@@ -7,9 +7,9 @@ cd $workdir
 cp /tmp/nginx.conf /etc/nginx/nginx.conf
 systemctl restart nginx
 
-curl --silent -L https://github.com/traitecoevo/austraits-api/archive/$branch.tar.gz | tar zxf -
+curl --silent -L https://github.com/traitecoevo/austraits-api/archive/$api_branch.tar.gz | tar zxf -
 
-cd austraits-api-$branch
+cd austraits-api-$api_branch
 sed -i 's/"traitecoevo\/austraits"/&, dependencies=FALSE, build_vignettes=FALSE/' "API.build/API examples v1.R"
 sed -i 's/port=80/port=8000/' api_wrapper.R
 Rscript api_wrapper.R &

@@ -1,0 +1,35 @@
+heat_template_version: 2021-04-16
+
+parameters:
+    api_branch:
+        type: string
+    wc_notify:
+        type: string
+
+resources:
+    cloud_config:
+        type: OS::Heat::CloudConfig
+        properties:
+            cloud_config:
+                package_update: true
+                packages:
+                - nginx
+
+                write_files:
+                - path: /tmp/nginx.conf
+                  content: { get_file: nginx.conf }
+                - path: /tmp/userdata.sh
+                  permissions: "0740"
+                  content:
+                      str_replace:
+                          template: { get_file: userdata.sh }
+                          params:
+                              $api_branch: { get_param: api_branch }
+                              $wc_notify: { get_param: wc_notify }
+
+                runcmd:
+                - /tmp/userdata.sh
+
+outputs:
+    cloud_config:
+        value: { get_resource: cloud_config }
