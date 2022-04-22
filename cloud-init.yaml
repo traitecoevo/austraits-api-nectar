@@ -11,10 +11,6 @@ resources:
         type: OS::Heat::CloudConfig
         properties:
             cloud_config:
-                package_update: true
-                packages:
-                - nginx
-
                 write_files:
                 - path: /tmp/nginx.conf
                   content: { get_file: nginx.conf }
