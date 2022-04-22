@@ -9,7 +9,7 @@ parameters:
 
     flavor:
         type: string
-        default: "t3.xsmall"
+        default: "t3.small"
         constraints:
         - custom_constraint: nova.flavor
 
