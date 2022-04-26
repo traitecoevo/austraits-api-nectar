@@ -14,6 +14,9 @@ resources:
                 write_files:
                 - path: /tmp/nginx.conf
                   content: { get_file: nginx.conf }
+                - path: /tmp/get-austraits-data.sh
+                  content: { get_file: get-austraits-data.sh }
+                  permissions: "0740"
                 - path: /tmp/userdata.sh
                   permissions: "0740"
                   content:

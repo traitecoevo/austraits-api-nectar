@@ -26,7 +26,7 @@ parameters:
 
     public_network:
         type: string
-        default: "QRIScloud"
+        default: "melbourne"
         description: Public network for external traffic
         constraints:
         - custom_constraint: neutron.network
