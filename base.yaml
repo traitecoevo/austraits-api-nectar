@@ -54,6 +54,20 @@ parameters:
         type: string
         default: "austraits.cloud.edu.au."
 
+    dns_name:
+        type: string
+        default: "api"
+
+    env_type:
+        type: string
+        constraints:
+        - allowed_values: ["dev", "prod"]
+        default: "dev"
+
+conditions:
+    is_dev: { equals: [ { get_param: env_type }, "dev" ]}
+    is_prod: { equals: [ { get_param: env_type }, "prod" ]}
+
 resources:
     network_stack:
         type: OS::Heat::Stack
@@ -159,7 +173,7 @@ resources:
     lb_dns_record:
         type: OS::Designate::RecordSet
         properties:
-            name: { list_join: [".", [{ get_resource: random_string}, "dev"]] }
+            name: { if: [ is_dev, { list_join: [".", [{ get_resource: random_string }, "dev"]]}, { get_param: dns_name } ] }
             type: A
             records:
             - { get_attr: [ lb_public_ip, floating_ip_address ] }
