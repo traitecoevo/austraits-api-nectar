@@ -50,6 +50,10 @@ parameters:
         description: Branch of traitecoevo/austraits_api to use for deployment
         default: "master"
 
+    dns_zone:
+        type: string
+        default: "austraits.cloud.edu.au."
+
 resources:
     network_stack:
         type: OS::Heat::Stack
@@ -100,7 +104,7 @@ resources:
             url_path: "/health-check"
             http_method: HEAD
 
-    floating_ip:
+    lb_public_ip:
         type: OS::Neutron::FloatingIP
         properties:
             floating_network: { get_param: public_network }
@@ -147,12 +151,29 @@ resources:
             - "trust+heat://"
             repeat_actions: false
 
+    random_string:
+        type: OS::Heat::RandomString
+        properties:
+            length: 16
+
+    lb_dns_record:
+        type: OS::Designate::RecordSet
+        properties:
+            name: { list_join: [".", [{ get_resource: random_string}, "dev"]] }
+            type: A
+            records:
+            - { get_attr: [ lb_public_ip, floating_ip_address ] }
+            zone: { get_param: dns_zone }
+
 outputs:
     lb_url:
         description: "Public-facing URL for load balancer"
         value:
             str_replace:
-                template: http://$ipaddress:$port
+                template: http://$fqdn
                 params:
-                    $ipaddress: { get_attr: [ floating_ip, floating_ip_address ] }
-                    $port: { get_param: lb_port }
+                    $fqdn: { get_attr: [ lb_dns_record, show, name ]}
+
+    lb_public_ip:
+        description: "Public-facing IP for load balancer"
+        value: { get_attr: [ lb_public_ip, floating_ip_address ] }
