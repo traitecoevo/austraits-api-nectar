@@ -14,6 +14,10 @@ parameters:
         type: string
         default: "intersect"
 
+    class_c:
+        type: string
+        default: "16"
+
     host_port:
         type: number
         default: 80
@@ -47,55 +51,13 @@ parameters:
         default: "master"
 
 resources:
-    network:
-        type: OS::Neutron::Net
-
-    router:
-        type: OS::Neutron::Router
+    network_stack:
+        type: OS::Heat::Stack
         properties:
-            external_gateway_info: {"network": { get_param: public_network }}
-
-    router_gateway:
-        type: OS::Neutron::RouterGateway
-        properties:
-            router_id: { get_resource: router }
-            network_id: { get_param: public_network }
-
-    public_subnet:
-        type: OS::Neutron::Subnet
-        properties:
-            dns_nameservers:
-            - 1.1.1.1
-            - 1.0.0.1
-            network: { get_resource: network }
-            ip_version: 4
-            cidr: 192.168.13.0/24
-            allocation_pools:
-            - { start: 192.168.13.2, end: 192.168.13.254 }
-
-    private_subnet:
-        type: OS::Neutron::Subnet
-        properties:
-            dns_nameservers:
-            - 1.1.1.1
-            - 1.0.0.1
-            network: { get_resource: network }
-            ip_version: 4
-            cidr: 192.168.14.0/24
-            allocation_pools:
-            - { start: 192.168.14.2, end: 192.168.14.254 }
-
-    public_sub_router_interface:
-        type: OS::Neutron::RouterInterface
-        properties:
-            router: { get_resource: router }
-            subnet: { get_resource: public_subnet }
-
-    private_sub_router_interface:
-        type: OS::Neutron::RouterInterface
-        properties:
-            router: { get_resource: router }
-            subnet: { get_resource: private_subnet }
+            template: { get_file: network.yaml }
+            parameters:
+                class_c: { get_param: class_c }
+                public_network: { get_param: public_network }
 
     secgroup:
         type: OS::Neutron::SecurityGroup
@@ -109,7 +71,7 @@ resources:
     lb:
         type: OS::Octavia::LoadBalancer
         properties:
-            vip_subnet: { get_resource: public_subnet }
+            vip_subnet: { get_attr: [ network_stack, outputs, public_subnet ]}
 
     lb_listener:
         type: OS::Octavia::Listener
@@ -166,8 +128,8 @@ resources:
                     flavor: { get_param: flavor }
                     image: { get_param: image }
                     availability_zone: { get_param: availability_zone }
-                    network: { get_resource: network }
-                    subnet: { get_resource: private_subnet }
+                    network: { get_attr: [ network_stack, outputs, network ]}
+                    subnet: { get_attr: [ network_stack, outputs, private_subnet]}
                     secgroup: { get_resource: secgroup }
                     wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
                     pool: { get_resource: lb_pool }

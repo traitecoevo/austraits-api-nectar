@@ -1,0 +1,66 @@
+heat_template_version: 2021-04-16
+
+parameters:
+    class_c:
+        type: string
+    public_network:
+        type: string
+
+resources:
+    network:
+        type: OS::Neutron::Net
+
+    router:
+        type: OS::Neutron::Router
+        properties:
+            external_gateway_info: {"network": { get_param: public_network }}
+
+    router_gateway:
+        type: OS::Neutron::RouterGateway
+        properties:
+            router_id: { get_resource: router }
+            network_id: { get_param: public_network }
+
+    public_subnet:
+        type: OS::Neutron::Subnet
+        properties:
+            dns_nameservers:
+            - 1.1.1.1
+            - 1.0.0.1
+            network: { get_resource: network }
+            ip_version: 4
+            cidr: { list_join: [".", ["192", "168", { get_param: class_c }, "0/25"]]}
+            allocation_pools:
+            - { start: { list_join: [".", ["192", "168", { get_param: class_c }, "2"]]}, end: { list_join: [".", ["192", "168", { get_param: class_c }, "126"]]} }
+
+    private_subnet:
+        type: OS::Neutron::Subnet
+        properties:
+            dns_nameservers:
+            - 1.1.1.1
+            - 1.0.0.1
+            network: { get_resource: network }
+            ip_version: 4
+            cidr: { list_join: [".", ["192", "168", { get_param: class_c }, "128/25"]]}
+            allocation_pools:
+            - { start: { list_join: [".", ["192", "168", { get_param: class_c }, "130"]]}, end: { list_join: [".", ["192", "168", { get_param: class_c }, "254"]]} }
+
+    public_sub_router_interface:
+        type: OS::Neutron::RouterInterface
+        properties:
+            router: { get_resource: router }
+            subnet: { get_resource: public_subnet }
+
+    private_sub_router_interface:
+        type: OS::Neutron::RouterInterface
+        properties:
+            router: { get_resource: router }
+            subnet: { get_resource: private_subnet }
+
+outputs:
+    network:
+        value: { get_resource: network }
+    public_subnet:
+        value: { get_resource: public_subnet }
+    private_subnet:
+        value: { get_resource: private_subnet }
