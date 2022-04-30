@@ -3,7 +3,6 @@ heat_template_version: 2021-04-16
 parameters:
     keypair:
         type: string
-        description: Name of an existing keypair to enable SSH access to the instance
         constraints:
         - custom_constraint: nova.keypair
 
