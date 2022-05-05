@@ -21,11 +21,14 @@ parameters:
         type: number
     api_branch:
         type: string
+    logstash_host:
+        type: string
 
 resources:
     cloud_init:
         type: cloud-init.yaml
         properties:
+            logstash_host: { get_param: logstash_host }
             api_branch: { get_param: api_branch }
             wc_notify: { get_param: wc_notify }
 
