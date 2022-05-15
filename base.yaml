@@ -88,6 +88,7 @@ resources:
     lb:
         type: OS::Octavia::LoadBalancer
         properties:
+            availability_zone: { get_param: availability_zone }
             vip_subnet: { get_attr: [ network_stack, outputs, public_subnet ]}
 
     lb_listener:
