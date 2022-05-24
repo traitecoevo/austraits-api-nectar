@@ -3,9 +3,5 @@ filebeat.modules:
   access:
       enabled: true
 
-processors:
-  - add_host_metadata:
-      when.not.contains.tags: forwarded
-
 output.logstash:
     hosts: ["$logstash_host:5044"]
