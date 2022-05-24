@@ -2,8 +2,6 @@
 
 workdir=/opt
 
-apt-get update && apt-get install -y openjdk-17-jre
-
 curl --silent https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
 add-apt-repository "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
 apt-get update && apt-get install -y filebeat
