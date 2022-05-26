@@ -7,6 +7,8 @@ parameters:
         type: string
     wc_notify:
         type: string
+    environment:
+        type: string
 
 resources:
     cloud_config:
@@ -23,6 +25,7 @@ resources:
                           template: { get_file: filebeat.yml }
                           params:
                               $logstash_host: { get_param: logstash_host }
+                              $environment: { get_param: environment }
 
                 - path: /tmp/get-austraits-data.sh
                   content: { get_file: get-austraits-data.sh }

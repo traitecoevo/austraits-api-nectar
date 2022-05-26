@@ -156,6 +156,7 @@ resources:
                     host_port: { get_param: host_port }
                     api_branch: { get_param: api_branch }
                     logstash_host: { get_param: logstash_host }
+                    environment: { get_param: OS::stack_name }
 
     lb_alarm:
         type: OS::Aodh::LBMemberHealthAlarm
