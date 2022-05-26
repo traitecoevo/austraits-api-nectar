@@ -2,15 +2,11 @@
 
 workdir=/opt
 
-curl --silent https://artifacts.elastic.co/GPG-KEY-elasticsearch | apt-key add -
-add-apt-repository "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
-apt-get update && apt-get install -y filebeat
+cp /tmp/nginx.conf /etc/nginx/nginx.conf
+systemctl restart nginx
 
 cp /tmp/filebeat.yml /etc/filebeat/filebeat.yml
 systemctl start filebeat
-
-cp /tmp/nginx.conf /etc/nginx/nginx.conf
-systemctl restart nginx
 
 cd /tmp && ./get-austraits-data.sh
 
