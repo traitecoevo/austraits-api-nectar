@@ -1,0 +1,13 @@
+filebeat.modules:
+- module: nginx
+  access:
+      enabled: true
+
+processors:
+  - add_fields:
+      target: environment
+      fields:
+        id: "$environment"
+
+output.logstash:
+    hosts: ["$logstash_host:5044"]

@@ -29,6 +29,10 @@ parameters:
         description: Branch of traitecoevo/austraits_api to use for deployment
         default: "master"
 
+    logstash_host:
+        type: string
+        description: "Host running Logstash to receive events from Filebeat"
+
 resources:
     secgroup:
         type: OS::Neutron::SecurityGroup
@@ -56,8 +60,10 @@ resources:
     cloud_init:
         type: cloud-init.yaml
         properties:
+            logstash_host: { get_param: logstash_host }
             api_branch: { get_param: api_branch }
             wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
+            environment: { get_param: OS::stack_name }
 
     server:
         type: OS::Nova::Server

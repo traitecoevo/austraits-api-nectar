@@ -49,6 +49,10 @@ parameters:
         description: Branch of traitecoevo/austraits_api to use for deployment
         default: "master"
 
+    logstash_host:
+        type: string
+        description: "Host running Logstash to receive events from Filebeat"
+
     dns_zone:
         type: string
         default: "austraits.cloud.edu.au."
@@ -152,6 +156,8 @@ resources:
                     pool: { get_resource: lb_pool }
                     host_port: { get_param: host_port }
                     api_branch: { get_param: api_branch }
+                    logstash_host: { get_param: logstash_host }
+                    environment: { get_param: OS::stack_name }
 
     lb_alarm:
         type: OS::Aodh::LBMemberHealthAlarm
