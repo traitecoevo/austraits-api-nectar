@@ -62,5 +62,7 @@ outputs:
         value: { get_resource: network }
     public_subnet:
         value: { get_resource: public_subnet }
+    public_subnet_cidr:
+        value: { get_attr: [public_subnet, cidr]}
     private_subnet:
         value: { get_resource: private_subnet }

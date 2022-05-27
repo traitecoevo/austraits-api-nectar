@@ -7,8 +7,6 @@ parameters:
         type: string
     availability_zone:
         type: string
-    network:
-        type: string
     subnet:
         type: string
     secgroup:

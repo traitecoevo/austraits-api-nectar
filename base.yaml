@@ -84,7 +84,7 @@ resources:
         type: OS::Neutron::SecurityGroup
         properties:
             rules:
-            - remote_ip_prefix: 0.0.0.0/0
+            - remote_ip_prefix: { get_attr: [ network_stack, outputs, public_subnet_cidr ]}
               port_range_min: { get_param: host_port }
               port_range_max: { get_param: host_port }
               protocol: tcp
@@ -149,8 +149,7 @@ resources:
                     flavor: { get_param: flavor }
                     image: { get_param: image }
                     availability_zone: { get_param: availability_zone }
-                    network: { get_attr: [ network_stack, outputs, network ]}
-                    subnet: { get_attr: [ network_stack, outputs, private_subnet]}
+                    subnet: { get_attr: [ network_stack, outputs, private_subnet ]}
                     secgroup: { get_resource: secgroup }
                     wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
                     pool: { get_resource: lb_pool }
@@ -177,7 +176,7 @@ resources:
     lb_dns_record:
         type: OS::Designate::RecordSet
         properties:
-            name: { if: [ is_dev, { list_join: [".", [{ get_resource: random_string }, "dev"]]}, { get_param: dns_name } ] }
+            name: { if: [ is_dev, { list_join: [".", [{ get_resource: random_string }, "dev"]]}, { get_param: dns_name }] }
             type: A
             records:
             - { get_attr: [ lb_public_ip, floating_ip_address ] }
