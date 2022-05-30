@@ -1,0 +1,41 @@
+heat_template_version: 2021-04-16
+
+parameters:
+    bucket:
+        type: string
+    wc_notify:
+        type: string
+
+resources:
+    cloud_config:
+        type: OS::Heat::CloudConfig
+        properties:
+            cloud_config:
+                write_files:
+                - path: /tmp/logstash.yml
+                  content: { get_file: logstash.yml }
+
+                - path: /tmp/logstash-swift.conf
+                  content:
+                      str_replace:
+                          template: { get_file: logstash-swift.conf }
+                          params:
+                              $bucket: { get_param: bucket }
+
+                - path: /tmp/logstash.patch
+                  content: { get_file: logstash.patch }
+
+                - path: /tmp/userdata.sh
+                  permissions: "0740"
+                  content:
+                      str_replace:
+                          template: { get_file: userdata.sh }
+                          params:
+                              $wc_notify: { get_param: wc_notify }
+
+                runcmd:
+                - /tmp/userdata.sh
+
+outputs:
+    cloud_config:
+        value: { get_resource: cloud_config }
