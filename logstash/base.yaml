@@ -70,3 +70,6 @@ resources:
 outputs:
     logstash_host:
         value: { get_attr: [ server, first_address ] }
+
+    log_bucket:
+        value: { get_resource: log_bucket }

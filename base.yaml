@@ -204,3 +204,6 @@ outputs:
     lb_public_ip:
         description: "Public-facing IP for load balancer"
         value: { get_attr: [ lb_public_ip, floating_ip_address ] }
+
+    log_bucket:
+        value: { get_attr: [ logstash_stack, outputs, log_bucket ] }
