@@ -33,7 +33,7 @@ parameters:
         type: string
         constraints:
         - custom_constraint: nova.flavor
-        default: "t3.xsmall"
+        default: "t3.small"
 
     logstash_image:
         type: string
