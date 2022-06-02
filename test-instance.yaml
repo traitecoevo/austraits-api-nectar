@@ -61,6 +61,10 @@ resources:
               protocol: tcp
               port_range_min: 5044
               port_range_max: 5044
+            - remote_ip_prefix: 0.0.0.0/0
+              protocol: tcp
+              port_range_min: 22
+              port_range_max: 22
 
     wait_handle:
         type: OS::Heat::WaitConditionHandle
@@ -105,6 +109,7 @@ resources:
     logstash_server:
         type: OS::Nova::Server
         properties:
+            key_name: { get_param: keypair }
             flavor: { get_param: logstash_flavor }
             image: { get_param: logstash_image }
             availability_zone: { get_param: availability_zone }
