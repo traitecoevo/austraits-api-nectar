@@ -22,9 +22,6 @@ resources:
                           params:
                               $bucket: { get_param: bucket }
 
-                - path: /tmp/logstash.patch
-                  content: { get_file: logstash.patch }
-
                 - path: /tmp/userdata.sh
                   permissions: "0740"
                   content:
