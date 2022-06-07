@@ -12,7 +12,6 @@ parameters:
 
     availability_zone:
         type: string
-        default: "intersect"
 
     class_c:
         type: string

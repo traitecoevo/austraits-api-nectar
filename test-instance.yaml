@@ -17,7 +17,6 @@ parameters:
 
     availability_zone:
         type: string
-        default: "intersect"
 
     host_port:
         type: number
