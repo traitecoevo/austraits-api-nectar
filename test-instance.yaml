@@ -29,9 +29,14 @@ parameters:
         description: Branch of traitecoevo/austraits_api to use for deployment
         default: "master"
 
-    logstash_host:
+    logstash_flavor:
         type: string
-        description: "Host running Logstash to receive events from Filebeat"
+        constraints:
+        - custom_constraint: nova.flavor
+        default: "t3.small"
+
+    logstash_image:
+        type: string
 
 resources:
     secgroup:
@@ -47,6 +52,20 @@ resources:
               port_range_min: 22
               port_range_max: 22
 
+    logstash_secgroup:
+        type: OS::Neutron::SecurityGroup
+        properties:
+            rules:
+            - remote_group_id: { get_resource: secgroup }
+              remote_mode: remote_group_id
+              protocol: tcp
+              port_range_min: 5044
+              port_range_max: 5044
+            - remote_ip_prefix: 0.0.0.0/0
+              protocol: tcp
+              port_range_min: 22
+              port_range_max: 22
+
     wait_handle:
         type: OS::Heat::WaitConditionHandle
 
@@ -54,13 +73,13 @@ resources:
         type: OS::Heat::WaitCondition
         properties:
             handle: { get_resource: wait_handle }
-            count: 1
+            count: 2
             timeout: 600
 
     cloud_init:
         type: cloud-init.yaml
         properties:
-            logstash_host: { get_param: logstash_host }
+            logstash_host: { get_attr: [ logstash_server, first_address ] }
             api_branch: { get_param: api_branch }
             wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
             environment: { get_param: OS::stack_name }
@@ -81,7 +100,43 @@ resources:
             user_data:
                 get_attr: [cloud_init, cloud_config]
 
+    logstash_cloud_init:
+        type: logstash/cloud-init.yaml
+        properties:
+            bucket: { get_resource: log_bucket }
+            wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
+
+    logstash_server:
+        type: OS::Nova::Server
+        properties:
+            key_name: { get_param: keypair }
+            flavor: { get_param: logstash_flavor }
+            image: { get_param: logstash_image }
+            availability_zone: { get_param: availability_zone }
+            networks:
+            - allocate_network: auto
+            security_groups:
+            - { get_resource: logstash_secgroup }
+
+            user_data_format: SOFTWARE_CONFIG
+            user_data:
+                get_attr: [ logstash_cloud_init, cloud_config ]
+
+    random_string:
+        type: OS::Heat::RandomString
+        properties:
+            length: 16
+
+    log_bucket:
+        type: OS::Swift::Container
+        properties:
+            name: { list_join: ["-", ["austraits-api-logs", { get_param: OS::stack_name }, { get_resource: random_string }] ]}
+        deletion_policy: retain
+
 outputs:
     ip_address:
         description: IP address of the deployed instance
         value: { get_attr: [server, first_address] }
+
+    log_bucket:
+        value: { get_resource: log_bucket }

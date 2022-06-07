@@ -1,0 +1,85 @@
+--- /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/logstash-output-swift-0.1/lib/logstash/outputs/swift.rb	2022-05-21 02:38:06.001570322 +0000
++++ swift.rb	2022-05-21 02:39:08.990199329 +0000
+@@ -281,7 +281,7 @@
+
+   def container_resource
+     Excon.defaults[:ciphers] = 'DEFAULT'
+-    service = Fog::Storage::OpenStack.new({
++    service = Fog::OpenStack::Storage.new({
+       openstack_username: @username,
+       openstack_api_key: @api_key,
+       openstack_auth_url: @auth_url,
+--- /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/fog-openstack-1.0.11/lib/fog/openstack/auth/name.rb	2022-05-21 02:38:01.409526771 +0000
++++ name.rb	2022-05-21 02:43:47.825208801 +0000
+@@ -60,6 +60,24 @@
+           {:user => data}
+         end
+       end
++
++      AppCredential = Struct.new(:id, :secret)
++      class AppCredential
++        def identity
++          raise CredentialsError, "#{self.class}: No userid available" if id.nil?
++          raise CredentialsError, "#{self.class}: No secret available" if secret.nil?
++
++          data = {}
++          data.merge!(to_h(:id))
++          data.merge!(to_h(:secret))
++
++          return data
++        end
++
++        def to_h(var)
++          {var => send(var).to_s}
++        end
++      end
+     end
+   end
+ end
+--- /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/fog-openstack-1.0.11/lib/fog/openstack/auth/token/v3.rb	2022-05-21 02:38:01.421526884 +0000
++++ v3.rb	2022-05-21 02:45:11.397612718 +0000
+@@ -20,8 +20,8 @@
+                          }
+                        else
+                          {
+-                           'methods'  => ['password'],
+-                           'password' => @user.identity
++                           'methods' => ['application_credential'],
++                           'application_credential' => @user.identity
+                          }
+                        end
+
+@@ -97,22 +97,7 @@
+             if auth[:openstack_auth_token]
+               @token = auth[:openstack_auth_token]
+             else
+-              @user = Fog::OpenStack::Auth::User.new(auth[:openstack_userid], auth[:openstack_username])
+-              @user.password = auth[:openstack_api_key]
+-
+-              @user.domain = if auth[:openstack_user_domain_id] || auth[:openstack_user_domain_name]
+-                               Fog::OpenStack::Auth::Name.new(
+-                                 auth[:openstack_user_domain_id],
+-                                 auth[:openstack_user_domain_name]
+-                               )
+-                             elsif auth[:openstack_domain_id] || auth[:openstack_domain_name]
+-                               Fog::OpenStack::Auth::Name.new(
+-                                 auth[:openstack_domain_id],
+-                                 auth[:openstack_domain_name]
+-                               )
+-                             else
+-                               Fog::OpenStack::Auth::Name.new(DOMAIN_ID, nil)
+-                             end
++              @user = Fog::OpenStack::Auth::AppCredential.new(auth[:openstack_username], auth[:openstack_api_key])
+             end
+
+             credentials
+--- /usr/share/logstash/vendor/bundle/jruby/2.5.0/gems/fog-openstack-1.0.11/lib/fog/openstack/auth/catalog.rb	2022-05-21 02:38:01.393526619 +0000
++++ catalog.rb	2022-05-21 02:59:08.548541881 +0000
+@@ -55,7 +55,6 @@
+               list << endpoint_url(endpoint, interface) if endpoint_match?(endpoint, interface, region)
+             end
+           end
+-          raise EndpointError, 'Multiple endpoints found' if list.size > 1
+           list[0]
+         end
+       end

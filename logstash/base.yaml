@@ -1,0 +1,75 @@
+heat_template_version: 2021-04-16
+
+parameters:
+    flavor:
+        type: string
+        constraints:
+        - custom_constraint: nova.flavor
+        default: "t3.small"
+    image:
+        type: string
+    availability_zone:
+        type: string
+    subnet:
+        type: string
+    host_secgroup:
+        type: string
+        constraints:
+        - custom_constraint: neutron.security_group
+    bucket_suffix:
+        type: string
+
+resources:
+    log_bucket:
+        type: OS::Swift::Container
+        properties:
+            name: { list_join: ["-", ["austraits-api-logs", { get_param: bucket_suffix }] ]}
+        deletion_policy: retain
+
+    secgroup:
+        type: OS::Neutron::SecurityGroup
+        properties:
+            rules:
+            - remote_group_id: { get_param: host_secgroup }
+              remote_mode: remote_group_id
+              protocol: tcp
+              port_range_min: 5044
+              port_range_max: 5044
+
+    wait_handle:
+        type: OS::Heat::WaitConditionHandle
+
+    wait_condition:
+        type: OS::Heat::WaitCondition
+        properties:
+            handle: { get_resource: wait_handle }
+            count: 1
+            timeout: 600
+
+    cloud_init:
+        type: cloud-init.yaml
+        properties:
+            bucket: { get_resource: log_bucket }
+            wc_notify: { get_attr: ["wait_handle", "curl_cli"] }
+
+    server:
+        type: OS::Nova::Server
+        properties:
+            flavor: { get_param: flavor }
+            image: { get_param: image }
+            availability_zone: { get_param: availability_zone }
+            networks:
+            - { subnet: { get_param: subnet }}
+            security_groups:
+            - { get_resource: secgroup }
+
+            user_data_format: SOFTWARE_CONFIG
+            user_data:
+                get_attr: [ cloud_init, cloud_config ]
+
+outputs:
+    logstash_host:
+        value: { get_attr: [ server, first_address ] }
+
+    log_bucket:
+        value: { get_resource: log_bucket }

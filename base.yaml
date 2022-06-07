@@ -49,10 +49,6 @@ parameters:
         description: Branch of traitecoevo/austraits_api to use for deployment
         default: "master"
 
-    logstash_host:
-        type: string
-        description: "Host running Logstash to receive events from Filebeat"
-
     dns_zone:
         type: string
         default: "austraits.cloud.edu.au."
@@ -67,6 +63,9 @@ parameters:
         - allowed_values: ["dev", "prod"]
         default: "dev"
 
+    logstash_image:
+        type: string
+
 conditions:
     is_dev: { equals: [ { get_param: env_type }, "dev" ]}
     is_prod: { equals: [ { get_param: env_type }, "prod" ]}
@@ -79,6 +78,17 @@ resources:
             parameters:
                 class_c: { get_param: class_c }
                 public_network: { get_param: public_network }
+
+    logstash_stack:
+        type: OS::Heat::Stack
+        properties:
+            template: { get_file: logstash/base.yaml }
+            parameters:
+                image: { get_param: logstash_image }
+                availability_zone: { get_param: availability_zone }
+                subnet: { get_attr: [ network_stack, outputs, private_subnet ]}
+                host_secgroup: { get_resource: secgroup }
+                bucket_suffix: { list_join: ["-", [{ get_param: OS::stack_name }, { get_resource: random_string }] ]}
 
     secgroup:
         type: OS::Neutron::SecurityGroup
@@ -155,7 +165,7 @@ resources:
                     pool: { get_resource: lb_pool }
                     host_port: { get_param: host_port }
                     api_branch: { get_param: api_branch }
-                    logstash_host: { get_param: logstash_host }
+                    logstash_host: { get_attr: [ logstash_stack, outputs, logstash_host ]}
                     environment: { get_param: OS::stack_name }
 
     lb_alarm:
@@ -194,3 +204,6 @@ outputs:
     lb_public_ip:
         description: "Public-facing IP for load balancer"
         value: { get_attr: [ lb_public_ip, floating_ip_address ] }
+
+    log_bucket:
+        value: { get_attr: [ logstash_stack, outputs, log_bucket ] }
