@@ -11,12 +11,15 @@ You will need:
 Deploy it:
 
 ```
-$ openstack stack create YOUR_STACK_NAME -t base.yaml --parameter "image=IMAGE_ID_OR_NAME"
+$ openstack stack create YOUR_STACK_NAME -t base.yaml \
+    --parameter="image=IMAGE_ID_OR_NAME" \
+    --parameter="logstash_image=LOGSTASH_IMAGE_ID_OR_NAME" \
+    --parameter="availability_zone=NECTAR_AZ"
 ```
 
-IMAGE_ID_OR_NAME should be an image built by [traitecoevo/austraits-api-nectar-imagebuilder](https://github.com/traitecoevo/austraits-api-nectar-imagebuilder) .
+IMAGE_ID_OR_NAME and LOGSTASH_IMAGE_ID_OR_NAME should be images built by [traitecoevo/austraits-api-nectar-imagebuilder](https://github.com/traitecoevo/austraits-api-nectar-imagebuilder) .
 
-`--parameter` argument (repeatable) lets you override default parameter values from base.yaml template. Some to try:
+`--parameter` argument also lets you override default parameter values from base.yaml template. Some to try:
 
 - `class_c`: class C network 192.168.*xxx*.0/24 to use
 - `instance_count`: how many API instances to launch
@@ -27,9 +30,13 @@ IMAGE_ID_OR_NAME should be an image built by [traitecoevo/austraits-api-nectar-i
 To deploy a standalone API instance:
 
 ```
-$ openstack stack create YOUR_STACK_NAME -t test-instance.yaml --parameter "image=IMAGE_ID_OR_NAME" --parameter="keypair=YOUR_KEYPAIR_NAME"
+$ openstack stack create YOUR_STACK_NAME -t test-instance.yaml \
+    --parameter="image=IMAGE_ID_OR_NAME" \
+    --parameter="logstash_image=LOGSTASH_IMAGE_ID_OR_NAME" \
+    --parameter="availability_zone=NECTAR_AZ" \
+    --parameter="keypair=YOUR_KEYPAIR_NAME"
 ```
 
-You can again use `api_branch` parameter to deploy the specified branch of traitecoevo/austraits_api .
+You can again use `api_branch` parameter to deploy the specified branch of [traitecoevo/austraits_api](https://github.com/traitecoevo/austraits-api) .
 
 The instance will be assigned a public-facing IP address, and you can SSH in with the specified keypair.
