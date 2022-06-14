@@ -130,7 +130,6 @@ resources:
         type: OS::Swift::Container
         properties:
             name: { list_join: ["-", ["austraits-api-logs", { get_param: OS::stack_name }, { get_resource: random_string }] ]}
-        deletion_policy: retain
 
 outputs:
     ip_address:
