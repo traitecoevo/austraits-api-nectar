@@ -173,8 +173,6 @@ resources:
             autoscaling_group_id: { get_resource: asg }
             pool: { get_resource: lb_pool }
             stack: { get_param: OS::stack_id }
-            alarm_actions:
-            - "trust+heat://"
             repeat_actions: false
 
     random_string:
