@@ -27,10 +27,6 @@ resources:
                               $logstash_host: { get_param: logstash_host }
                               $environment: { get_param: environment }
 
-                - path: /tmp/get-austraits-data.sh
-                  content: { get_file: get-austraits-data.sh }
-                  permissions: "0740"
-
                 - path: /tmp/userdata.sh
                   permissions: "0740"
                   content:
